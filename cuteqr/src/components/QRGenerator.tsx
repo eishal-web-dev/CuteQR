@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback } from "react";
 import { Download, RotateCcw, Sparkles, Loader2, Palette } from "lucide-react";
 import { AnimalPicker } from "./AnimalPicker";
-import { AnimalFrame } from "./AnimalFrame";
 import { ANIMALS, getAnimal, type AnimalId } from "@/lib/animals";
 import { generateAndValidateQR, isLikelyUrl, normalizeUrl, type GenerateResult, type QRCustomization } from "@/lib/qr";
 
@@ -17,7 +16,7 @@ export function QRGenerator() {
   const [showCustomize, setShowCustomize] = useState(false);
   const [customization, setCustomization] = useState<QRCustomization>({
     moduleStyle: "rounded",
-    size: 480,
+    size: 560,
   });
   const [errorMsg, setErrorMsg] = useState("");
   const generationId = useRef(0);
@@ -31,7 +30,7 @@ export function QRGenerator() {
       setErrorMsg("");
       try {
         const res = await generateAndValidateQR(targetUrl, getAnimal(targetAnimal), targetCustomization);
-        if (myId !== generationId.current) return; // a newer request superseded this one
+        if (myId !== generationId.current) return;
         setResult(res);
         setStatus("ready");
       } catch {
@@ -79,7 +78,7 @@ export function QRGenerator() {
     if (!result) return;
     const link = document.createElement("a");
     link.href = result.dataUrl;
-    link.download = `cuteqr-${animalId}.png`;
+    link.download = `cuteqr-${animalId}-art.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -87,7 +86,6 @@ export function QRGenerator() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* URL input */}
       <div className="relative">
         <input
           type="text"
@@ -99,7 +97,6 @@ export function QRGenerator() {
         />
       </div>
 
-      {/* Animal picker */}
       <div className="mt-8">
         <p className="text-center font-display text-sm font-semibold text-[var(--color-ink-soft)] mb-4">
           Choose your buddy
@@ -107,7 +104,6 @@ export function QRGenerator() {
         <AnimalPicker selected={animalId} onSelect={handleAnimalChange} />
       </div>
 
-      {/* Generate CTA */}
       {status !== "ready" && (
         <div className="mt-8 flex flex-col items-center">
           <button
@@ -119,7 +115,7 @@ export function QRGenerator() {
           >
             {status === "generating" ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" /> Creating your buddy...
+                <Loader2 className="w-5 h-5 animate-spin" /> Painting your CuteQR...
               </>
             ) : (
               <>
@@ -133,33 +129,35 @@ export function QRGenerator() {
         </div>
       )}
 
-      {/* Result preview */}
       {status === "ready" && result && (
         <div className="mt-10 flex flex-col items-center">
-          <div className="relative">
-            <AnimalFrame animal={animalId} earColor={animal.earColor} accentSoft={animal.accentSoft} bounce>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result.dataUrl} alt={`CuteQR code for ${url}`} width={220} height={220} className="block" />
-            </AnimalFrame>
+          <div className="relative w-full max-w-[430px]">
+            <div className="absolute -inset-5 rounded-[3rem] blur-3xl opacity-30" style={{ background: animal.accentSoft }} aria-hidden="true" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={result.dataUrl}
+              alt={`${animal.label} artwork containing a scannable QR code for ${url}`}
+              className="relative block w-full rounded-[2.5rem] shadow-[0_28px_70px_-24px_rgba(61,50,38,0.35)] ring-1 ring-black/5"
+            />
             {result.isValid && (
               <Sparkles
-                className="absolute -top-2 -right-2 w-6 h-6 text-[var(--color-butter-deep)] animate-sparkle"
+                className="absolute top-4 right-4 w-7 h-7 text-[var(--color-butter-deep)] animate-sparkle drop-shadow-sm"
                 aria-hidden="true"
               />
             )}
           </div>
 
           <p className="mt-6 font-display text-lg font-bold text-[var(--color-ink)]">
-            Your CuteQR is ready! 🥹
+            Your {animal.label} CuteQR is ready! 🥹
           </p>
 
           {result.isValid ? (
             <p className="mt-1 text-sm font-semibold text-[var(--color-mint-deep)] flex items-center gap-1.5">
-              ✅ Scan tested{result.simplified ? " (simplified for reliability)" : ""}
+              ✅ Final artwork scan tested{result.simplified ? " (cleaner mode used for reliability)" : ""}
             </p>
           ) : (
-            <p className="mt-1 text-sm font-semibold text-[var(--color-fox-deep)]">
-              ⚠️ This QR could not be verified as scannable. Try a shorter link or a different style.
+            <p className="mt-1 text-sm font-semibold text-[var(--color-fox-deep)] text-center max-w-md">
+              ⚠️ This artwork could not be verified as scannable. Try a shorter link or a darker QR color.
             </p>
           )}
 
@@ -170,7 +168,7 @@ export function QRGenerator() {
               disabled={!result.isValid}
               className="font-display inline-flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-6 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
             >
-              <Download className="w-4 h-4" /> Download PNG
+              <Download className="w-4 h-4" /> Download artwork
             </button>
             <button
               type="button"
@@ -201,10 +199,10 @@ export function QRGenerator() {
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--color-ink-soft)]">
-                  Background color
+                  Art background
                   <input
                     type="color"
-                    value={customization.bgColor || "#FFFFFF"}
+                    value={customization.bgColor || animal.bgColor}
                     onChange={(e) => handleCustomizationChange({ bgColor: e.target.value })}
                     className="h-9 w-full rounded-lg cursor-pointer"
                   />
@@ -212,7 +210,7 @@ export function QRGenerator() {
               </div>
 
               <div className="mt-4">
-                <p className="text-xs font-semibold text-[var(--color-ink-soft)] mb-2">Module shape</p>
+                <p className="text-xs font-semibold text-[var(--color-ink-soft)] mb-2">QR texture</p>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -223,7 +221,7 @@ export function QRGenerator() {
                         : "bg-[var(--color-cream-deep)] text-[var(--color-ink)]"
                     }`}
                   >
-                    Rounded
+                    Soft
                   </button>
                   <button
                     type="button"
@@ -234,19 +232,19 @@ export function QRGenerator() {
                         : "bg-[var(--color-cream-deep)] text-[var(--color-ink)]"
                     }`}
                   >
-                    Square
+                    Crisp
                   </button>
                 </div>
               </div>
 
               <div className="mt-4">
                 <p className="text-xs font-semibold text-[var(--color-ink-soft)] mb-2">
-                  QR size: {customization.size}px
+                  Artwork size: {customization.size}px
                 </p>
                 <input
                   type="range"
-                  min={320}
-                  max={720}
+                  min={420}
+                  max={840}
                   step={40}
                   value={customization.size}
                   onChange={(e) => handleCustomizationChange({ size: Number(e.target.value) })}
