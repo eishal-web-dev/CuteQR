@@ -61,6 +61,29 @@ const MARKETPLACE_DOMAINS: Record<string, string> = {
   A19VAU5U5O7RUS: "amazon.sg",
 };
 
+const MARKETPLACE_REGIONS: Record<string, AmazonRegion> = {
+  ATVPDKIKX0DER: "na",
+  A2EUQ1WTGCTBG2: "na",
+  A1AM78C64UM0Y8: "na",
+  A2Q3Y263D00KWC: "na",
+  A1F83G8C2ARO7P: "eu",
+  A1PA6795UKMFR9: "eu",
+  A13V1IB3VIYZZH: "eu",
+  APJ6JRA9NG5V4: "eu",
+  A1RKKUPIHCS9HS: "eu",
+  A1805IZSGTT6HS: "eu",
+  A2NODRKZP88ZB9: "eu",
+  A1C3SOZRARQ6R3: "eu",
+  AMEN7PMS3EDWL: "eu",
+  A33AVAJ2PDY3EV: "eu",
+  A2VIGQ35RCS4UG: "eu",
+  A17E79C6D8DWNP: "eu",
+  A21TJRUUN4KGV: "eu",
+  A1VC38T7YXB528: "fe",
+  A39IBJ37TRP1C6: "fe",
+  A19VAU5U5O7RUS: "fe",
+};
+
 function env(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing ${name}`);
@@ -142,9 +165,9 @@ function amazonDate(): string {
   return new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
 }
 
-async function spApiFetch<T>(session: AmazonSession, path: string): Promise<T> {
+async function spApiFetch<T>(session: AmazonSession, path: string, region = session.region): Promise<T> {
   const accessToken = await getAmazonAccessToken(session.refreshToken);
-  const endpoint = REGION_CONFIG[session.region].endpoint;
+  const endpoint = REGION_CONFIG[region].endpoint;
   const target = new URL(path, endpoint);
   const response = await fetch(target, {
     headers: {
@@ -172,7 +195,28 @@ export async function getAmazonMarketplaces(session: AmazonSession): Promise<Ama
     }>;
   };
 
-  const data = await spApiFetch<Response>(session, "/sellers/v1/marketplaceParticipations");
+  const regions: AmazonRegion[] = [session.region, "na", "eu", "fe"].filter(
+    (value, index, all) => all.indexOf(value) === index
+  );
+
+  let data: Response | null = null;
+  let lastError: unknown = null;
+  for (const region of regions) {
+    try {
+      const candidate = await spApiFetch<Response>(session, "/sellers/v1/marketplaceParticipations", region);
+      if (candidate.payload?.length) {
+        data = candidate;
+        break;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (!data) {
+    throw lastError instanceof Error ? lastError : new Error("Could not detect the seller region");
+  }
+
   return (data.payload || [])
     .filter((entry) => entry.participation?.isParticipating !== false && entry.marketplace?.id)
     .map((entry) => {
@@ -194,7 +238,8 @@ export async function getAmazonListings(session: AmazonSession, marketplaceId: s
   const path = `/listings/2021-08-01/items/${encodeURIComponent(session.sellerId)}?marketplaceIds=${encodeURIComponent(
     marketplaceId
   )}&includedData=summaries&pageSize=20`;
-  const data = await spApiFetch<Response>(session, path);
+  const region = MARKETPLACE_REGIONS[marketplaceId] || session.region;
+  const data = await spApiFetch<Response>(session, path, region);
   const domain = MARKETPLACE_DOMAINS[marketplaceId];
 
   return (data.items || []).map((item) => {
