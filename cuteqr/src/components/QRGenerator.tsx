@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Download, RotateCcw, Sparkles, Loader2, Palette } from "lucide-react";
 import { AnimalPicker } from "./AnimalPicker";
 import { ANIMALS, getAnimal, type AnimalId } from "@/lib/animals";
@@ -22,6 +22,14 @@ export function QRGenerator() {
   const generationId = useRef(0);
 
   const animal = getAnimal(animalId);
+
+  useEffect(() => {
+    const amazonUrl = new URLSearchParams(window.location.search).get("amazonUrl");
+    if (amazonUrl && isLikelyUrl(amazonUrl)) {
+      setUrl(amazonUrl);
+      window.setTimeout(() => document.getElementById("generator")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+  }, []);
 
   const runGeneration = useCallback(
     async (targetUrl: string, targetAnimal: AnimalId, targetCustomization: QRCustomization) => {
@@ -85,7 +93,7 @@ export function QRGenerator() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div id="generator" className="w-full max-w-2xl mx-auto scroll-mt-8">
       <div className="relative">
         <input
           type="text"
