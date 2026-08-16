@@ -195,9 +195,7 @@ export async function getAmazonMarketplaces(session: AmazonSession): Promise<Ama
     }>;
   };
 
-  const regions: AmazonRegion[] = [session.region, "na", "eu", "fe"].filter(
-    (value, index, all) => all.indexOf(value) === index
-  );
+  const regions = [...new Set<AmazonRegion>([session.region, "na", "eu", "fe"])];
 
   let data: Response | null = null;
   let lastError: unknown = null;
