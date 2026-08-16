@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #FDF8F3;
+  --color-cream-deep: #F7EEE2;
+  --color-ink: #3D3226;
+  --color-ink-soft: #8A7D6C;
+  --color-blush: #F6B8C6;
+  --color-blush-deep: #EE93A8;
+  --color-mint: #BCE3D1;
+  --color-mint-deep: #8FCDB2;
+  --color-butter: #FDE7A8;
+  --color-butter-deep: #F7D06B;
+  --color-fox: #F0956B;
+  --color-fox-deep: #E3743F;
+
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-cream-deep: var(--color-cream-deep);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-blush: var(--color-blush);
+  --color-blush-deep: var(--color-blush-deep);
+  --color-mint: var(--color-mint);
+  --color-mint-deep: var(--color-mint-deep);
+  --color-butter: var(--color-butter);
+  --color-butter-deep: var(--color-butter-deep);
+  --color-fox: var(--color-fox);
+  --color-fox-deep: var(--color-fox-deep);
+  --font-family-display: var(--font-display);
+  --font-family-body: var(--font-body);
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Paw print texture, used sparingly */
+.paw-bg {
+  background-image: radial-gradient(circle at 1px 1px, var(--color-ink) 1px, transparent 0);
+  background-size: 24px 24px;
+  opacity: 0.04;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-6deg); }
+  75% { transform: rotate(6deg); }
+}
+
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes sparkle-pop {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(90deg); opacity: 1; }
+  100% { transform: scale(1) rotate(180deg); opacity: 0.9; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 0.6s ease-in-out;
+}
+
+.animate-sparkle {
+  animation: sparkle-pop 0.5s ease-out forwards;
+}
+
+.animate-float-slow {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wiggle,
+  .animate-bounce-soft,
+  .animate-sparkle,
+  .animate-float-slow {
+    animation: none !important;
+  }
+}
